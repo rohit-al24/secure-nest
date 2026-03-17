@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Shield, Loader2, Eye, EyeOff, Copy, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import PinSetup from '@/components/PinSetup';
 
 const Register = () => {
   const [fullName, setFullName] = useState('');
@@ -17,6 +18,7 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showPinSetup, setShowPinSetup] = useState(false);
   const [accountNumber, setAccountNumber] = useState('');
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
@@ -38,25 +40,21 @@ const Register = () => {
       password,
       options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
     });
-    
+
     if (error) {
       setLoading(false);
       toast({ title: 'Registration failed', description: error.message, variant: 'destructive' });
       return;
     }
 
-    // Fetch the newly created account number
     if (signUpData?.user) {
-      // Small delay for the trigger to complete
       await new Promise(resolve => setTimeout(resolve, 1000));
       const { data: accData } = await supabase
         .from('accounts')
         .select('account_number')
         .eq('user_id', signUpData.user.id)
         .single();
-      if (accData) {
-        setAccountNumber(accData.account_number);
-      }
+      if (accData) setAccountNumber(accData.account_number);
     }
 
     setLoading(false);
@@ -68,6 +66,16 @@ const Register = () => {
     setCopied(true);
     toast({ title: 'Copied!', description: 'Account number copied to clipboard.' });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSuccessContinue = () => {
+    setShowSuccess(false);
+    setShowPinSetup(true);
+  };
+
+  const handlePinComplete = () => {
+    setShowPinSetup(false);
+    navigate('/login');
   };
 
   return (
@@ -115,15 +123,16 @@ const Register = () => {
         </CardContent>
       </Card>
 
-      <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <DialogContent className="sm:max-w-md">
+      {/* Account Activated Dialog */}
+      <Dialog open={showSuccess} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader className="text-center">
             <div className="flex justify-center mb-3">
               <CheckCircle2 className="h-12 w-12 text-accent" />
             </div>
             <DialogTitle className="text-xl">Your Account is Activated!</DialogTitle>
             <DialogDescription>
-              Your FinCore account has been created and is ready to use. Save your account number below.
+              Your FinCore account has been created. Save your account number below, then set up your transaction PIN.
             </DialogDescription>
           </DialogHeader>
           {accountNumber && (
@@ -137,9 +146,12 @@ const Register = () => {
               </Button>
             </div>
           )}
-          <Button onClick={() => navigate('/login')} className="w-full mt-2">Go to Login</Button>
+          <Button onClick={handleSuccessContinue} className="w-full mt-2">Set Transaction PIN</Button>
         </DialogContent>
       </Dialog>
+
+      {/* PIN Setup */}
+      <PinSetup open={showPinSetup} onComplete={handlePinComplete} />
     </div>
   );
 };
