@@ -68,10 +68,11 @@ const TransactionHistory = () => {
   };
 
   const downloadCSV = () => {
-    const headers = ['Date', 'Type', 'Amount', 'Status'];
+    const headers = ['Date', 'Type', 'Hash', 'Amount', 'Status'];
     const rows = transactions.map(txn => {
       const d = getTxnDisplay(txn);
-      return [new Date(txn.created_at).toLocaleDateString(), d.type, d.amount, txn.status];
+      const txnAny = txn as any;
+      return [new Date(txn.created_at).toLocaleDateString(), d.type, txnAny.txn_hash || '', d.amount, txnAny.is_successful !== false ? 'Success' : 'Failed'];
     });
     const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
