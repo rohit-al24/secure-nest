@@ -98,9 +98,11 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_successful: boolean
           receiver_account_id: string | null
           sender_account_id: string | null
           status: string
+          txn_hash: string | null
           type: Database["public"]["Enums"]["transaction_type"]
         }
         Insert: {
@@ -108,9 +110,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_successful?: boolean
           receiver_account_id?: string | null
           sender_account_id?: string | null
           status?: string
+          txn_hash?: string | null
           type: Database["public"]["Enums"]["transaction_type"]
         }
         Update: {
@@ -118,9 +122,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_successful?: boolean
           receiver_account_id?: string | null
           sender_account_id?: string | null
           status?: string
+          txn_hash?: string | null
           type?: Database["public"]["Enums"]["transaction_type"]
         }
         Relationships: [
@@ -168,6 +174,7 @@ export type Database = {
         Returns: Json
       }
       generate_account_number: { Args: never; Returns: string }
+      generate_txn_hash: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

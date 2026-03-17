@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Shield, Loader2, Eye, EyeOff, Copy, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
@@ -17,6 +17,8 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [accountNumber, setAccountNumber] = useState('');
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -31,17 +33,41 @@ const Register = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
     });
-    setLoading(false);
+    
     if (error) {
+      setLoading(false);
       toast({ title: 'Registration failed', description: error.message, variant: 'destructive' });
-    } else {
-      setShowSuccess(true);
+      return;
     }
+
+    // Fetch the newly created account number
+    if (signUpData?.user) {
+      // Small delay for the trigger to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data: accData } = await supabase
+        .from('accounts')
+        .select('account_number')
+        .eq('user_id', signUpData.user.id)
+        .single();
+      if (accData) {
+        setAccountNumber(accData.account_number);
+      }
+    }
+
+    setLoading(false);
+    setShowSuccess(true);
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(accountNumber);
+    setCopied(true);
+    toast({ title: 'Copied!', description: 'Account number copied to clipboard.' });
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -90,14 +116,28 @@ const Register = () => {
       </Card>
 
       <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Account Created Successfully!</DialogTitle>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center">
+            <div className="flex justify-center mb-3">
+              <CheckCircle2 className="h-12 w-12 text-accent" />
+            </div>
+            <DialogTitle className="text-xl">Your Account is Activated!</DialogTitle>
             <DialogDescription>
-              Your account has been created. Check your email to confirm, then sign in.
+              Your FinCore account has been created and is ready to use. Save your account number below.
             </DialogDescription>
           </DialogHeader>
-          <Button onClick={() => navigate('/login')} className="w-full">Go to Login</Button>
+          {accountNumber && (
+            <div className="flex items-center gap-2 bg-muted rounded-lg p-3 mt-2">
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground mb-1">Your Account Number</p>
+                <p className="font-mono text-lg font-bold text-foreground tracking-wider">{accountNumber}</p>
+              </div>
+              <Button variant="outline" size="icon" onClick={handleCopy} className="shrink-0">
+                {copied ? <CheckCircle2 className="h-4 w-4 text-accent" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          )}
+          <Button onClick={() => navigate('/login')} className="w-full mt-2">Go to Login</Button>
         </DialogContent>
       </Dialog>
     </div>
