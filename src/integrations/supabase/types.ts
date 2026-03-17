@@ -68,12 +68,53 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          amount: number | null
+          created_at: string
+          from_user_id: string | null
+          id: string
+          is_read: boolean
+          message: string
+          related_data: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          related_data?: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_data?: Json | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           email: string
           full_name: string
           id: string
+          is_active: boolean
+          pin_hash: string | null
           updated_at: string
         }
         Insert: {
@@ -81,6 +122,8 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          is_active?: boolean
+          pin_hash?: string | null
           updated_at?: string
         }
         Update: {
@@ -88,6 +131,8 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          is_active?: boolean
+          pin_hash?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -175,6 +220,16 @@ export type Database = {
       }
       generate_account_number: { Args: never; Returns: string }
       generate_txn_hash: { Args: never; Returns: string }
+      get_people_list: {
+        Args: { p_search?: string }
+        Returns: {
+          email: string
+          full_name: string
+          is_active: boolean
+          user_id: string
+        }[]
+      }
+      has_pin_set: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -182,18 +237,40 @@ export type Database = {
         }
         Returns: boolean
       }
-      transfer_funds: {
-        Args: {
-          p_amount: number
-          p_receiver_account_number: string
-          p_sender_account_id: string
-        }
+      request_funds: {
+        Args: { p_amount: number; p_from_user_id: string }
         Returns: Json
       }
-      withdraw_funds: {
-        Args: { p_account_id: string; p_amount: number }
+      send_to_user: {
+        Args: { p_amount: number; p_pin: string; p_receiver_user_id: string }
         Returns: Json
       }
+      set_user_pin: { Args: { p_pin: string }; Returns: Json }
+      transfer_funds:
+        | {
+            Args: {
+              p_amount: number
+              p_receiver_account_number: string
+              p_sender_account_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_amount: number
+              p_pin?: string
+              p_receiver_account_number: string
+              p_sender_account_id: string
+            }
+            Returns: Json
+          }
+      verify_pin: { Args: { p_pin: string }; Returns: boolean }
+      withdraw_funds:
+        | { Args: { p_account_id: string; p_amount: number }; Returns: Json }
+        | {
+            Args: { p_account_id: string; p_amount: number; p_pin?: string }
+            Returns: Json
+          }
     }
     Enums: {
       account_type: "savings" | "checking"
