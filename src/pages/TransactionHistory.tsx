@@ -148,6 +148,7 @@ const TransactionHistory = () => {
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Hash Reference</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                   </TableRow>
@@ -155,13 +156,19 @@ const TransactionHistory = () => {
                 <TableBody>
                   {transactions.map(txn => {
                     const display = getTxnDisplay(txn);
+                    const txnAny = txn as any;
                     return (
                       <TableRow key={txn.id}>
                         <TableCell className="text-muted-foreground">{new Date(txn.created_at).toLocaleString()}</TableCell>
                         <TableCell className="font-medium">{display.type}</TableCell>
                         <TableCell>
-                          <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
-                            {txn.status}
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {txnAny.txn_hash ? txnAny.txn_hash.substring(0, 12) + '...' : '—'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${txnAny.is_successful !== false ? 'bg-accent/10 text-accent' : 'bg-destructive/10 text-destructive'}`}>
+                            {txnAny.is_successful !== false ? 'Success' : 'Failed'}
                           </span>
                         </TableCell>
                         <TableCell className={`text-right font-semibold ${display.color}`}>{display.amount}</TableCell>
