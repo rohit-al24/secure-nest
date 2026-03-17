@@ -217,6 +217,7 @@ const Dashboard = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Type</TableHead>
+                    <TableHead>Hash</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                   </TableRow>
@@ -224,9 +225,15 @@ const Dashboard = () => {
                 <TableBody>
                   {transactions.map(txn => {
                     const display = getTxnDisplay(txn);
+                    const txnAny = txn as any;
                     return (
                       <TableRow key={txn.id}>
                         <TableCell className="font-medium">{display.type}</TableCell>
+                        <TableCell>
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {txnAny.txn_hash ? txnAny.txn_hash.substring(0, 8) + '...' : '—'}
+                          </span>
+                        </TableCell>
                         <TableCell className="text-muted-foreground">{new Date(txn.created_at).toLocaleDateString()}</TableCell>
                         <TableCell className={`text-right font-semibold ${display.color}`}>{display.amount}</TableCell>
                       </TableRow>
